@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pixelblot SDK Example</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      input, select { padding: 8px 10px; min-width: 220px; }
+      button { padding: 8px 12px; cursor: pointer; }
+      pre { background: #0b0f14; color: #d7e2ee; padding: 12px; overflow: auto; border-radius: 8px; }
+      code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
+      .muted { color: #5b6570; }
+    </style>
+  </head>
+  <body>
+    <h1>Pixelblot Recorder (SDK) Example</h1>
+    <p class="muted">
+      This page records <code>pointermove</code>, and computes predictions when you click “Predict”.
+    </p>
+
+    <div class="row">
+      <label>
+        Backend base URL:
+        <input id="backendUrl" value="https://pixelblot-maila-backend.onrender.com" />
+      </label>
+      <label>
+        User name:
+        <input id="userName" value="alice" />
+      </label>
+      <label>
+        Model group:
+        <select id="modelGroup">
+          <option value="draw" selected>draw (force draw models)</option>
+          <option value="quest">quest (force quest models)</option>
+          <option value="auto">auto</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row" style="margin-top: 12px">
+      <button id="startBtn">Start recording</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <button id="predictBtn" disabled>Predict (flush + /predict)</button>
+      <button id="newSessionBtn" disabled>New session</button>
+    </div>
+
+    <p class="muted" id="status" style="margin-top: 12px"></p>
+    <h3>Response</h3>
+    <pre id="out">{}</pre>
+
+    <script src="./pixelblot-recorder.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      let recorder = null;
+
+      function updateStatus() {
+        if (!recorder) {
+          $("status").textContent = "Recorder not initialized.";
+          return;
+        }
+        $("status").textContent =
+          `userId=${recorder.config.userId} sessionId=${recorder.config.sessionId} ` +
+          `(segmentMs=${recorder.config.segmentMs}, flushMs=${recorder.config.flushMs})`;
+      }
+
+      function initRecorder() {
+        const base = $("backendUrl").value.replace(/\/+$/, "");
+        recorder = PixelblotRecorder.createRecorder({
+          endpoint: `${base}/exp_main`,
+          predictEndpoint: `${base}/predict`,
+          userName: $("userName").value || "anonymous",
+          modelGroup: $("modelGroup").value,
+          segmentMs: 10_000,
+          flushMs: 1_000,
+        });
+        updateStatus();
+      }
+
+      $("startBtn").addEventListener("click", () => {
+        if (!recorder) initRecorder();
+        recorder.config.userName = $("userName").value || recorder.config.userName || "anonymous";
+        recorder.start();
+        $("startBtn").disabled = true;
+        $("stopBtn").disabled = false;
+        $("predictBtn").disabled = false;
+        $("newSessionBtn").disabled = false;
+        updateStatus();
+      });
+
+      $("stopBtn").addEventListener("click", () => {
+        recorder.stop();
+        $("startBtn").disabled = false;
+        $("stopBtn").disabled = true;
+        updateStatus();
+      });
+
+      $("predictBtn").addEventListener("click", async () => {
+        try {
+          $("out").textContent = "Loading...";
+          const res = await recorder.predict($("userName").value || "anonymous");
+          $("out").textContent = JSON.stringify(res, null, 2);
+        } catch (e) {
+          $("out").textContent = String(e && e.message ? e.message : e);
+        } finally {
+          updateStatus();
+        }
+      });
+
+      $("newSessionBtn").addEventListener("click", async () => {
+        if (!recorder) return;
+        await recorder.newSession({ userName: $("userName").value || "anonymous" });
+        updateStatus();
+      });
+    </script>
+  </body>
+</html>
