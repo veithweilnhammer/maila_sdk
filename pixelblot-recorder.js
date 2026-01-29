@@ -33,6 +33,8 @@
       userId: opts.userId || defaultUserId(),
       sessionId: opts.sessionId || defaultSessionId(),
       userName: opts.userName || "anonymous",
+      userAlias: typeof opts.userAlias === "string" ? opts.userAlias : "N/A",
+      userInfo: typeof opts.userInfo === "string" ? opts.userInfo : "N/A",
       segmentType: opts.segmentType || "web",
       modelGroup: opts.modelGroup || "auto", // "auto" | "draw" | "quest"
       segmentMs: typeof opts.segmentMs === "number" ? opts.segmentMs : 10_000,
@@ -162,6 +164,8 @@
         timestamp: ts,
         x: e.clientX,
         y: e.clientY,
+        user_alias: config.userAlias,
+        user_info: config.userInfo,
         viewport: getViewport(),
       });
     }
@@ -176,6 +180,8 @@
         session_id: config.sessionId,
         user_id: config.userId,
         user_name: config.userName,
+        user_alias: config.userAlias,
+        user_info: config.userInfo,
         user_agent: navigator && navigator.userAgent ? navigator.userAgent : "unknown",
         platform: navigator && navigator.platform ? navigator.platform : "unknown",
         language: navigator && navigator.language ? navigator.language : "unknown",
@@ -265,6 +271,8 @@
         if (typeof p.userName === "string") config.userName = p.userName;
         if (typeof p.userId === "string") config.userId = p.userId;
         else if (rotateUserId) config.userId = defaultUserId();
+        if (typeof p.userAlias === "string") config.userAlias = p.userAlias;
+        if (typeof p.userInfo === "string") config.userInfo = p.userInfo;
 
         if (typeof p.sessionId === "string") config.sessionId = p.sessionId;
         else config.sessionId = defaultSessionId();
@@ -276,6 +284,8 @@
             session_id: config.sessionId,
             user_id: config.userId,
             user_name: config.userName,
+            user_alias: config.userAlias,
+            user_info: config.userInfo,
             user_agent: navigator && navigator.userAgent ? navigator.userAgent : "unknown",
             platform: navigator && navigator.platform ? navigator.platform : "unknown",
             language: navigator && navigator.language ? navigator.language : "unknown",

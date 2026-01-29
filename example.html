@@ -5,20 +5,79 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Pixelblot SDK Example</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap");
+      :root {
+        --bg: #04050a;
+        --panel: #0b0f1a;
+        --text: #f5f7ff;
+        --muted: #9aa5b8;
+        --neon-blue: #37c7ff;
+        --neon-purple: #b54bff;
+        --border: #182238;
+        --glow: 0 0 18px rgba(55, 199, 255, 0.35), 0 0 28px rgba(181, 75, 255, 0.25);
+      }
+      body {
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        max-width: 980px;
+        margin: 32px auto;
+        padding: 0 20px 40px;
+        background:
+          radial-gradient(1200px 700px at 10% 5%, rgba(55, 199, 255, 0.12), transparent 50%),
+          radial-gradient(800px 600px at 90% 15%, rgba(181, 75, 255, 0.12), transparent 50%),
+          var(--bg);
+        color: var(--text);
+      }
+      h1 {
+        letter-spacing: 0.5px;
+        text-shadow: 0 0 12px rgba(55, 199, 255, 0.5);
+      }
       .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-      input, select { padding: 8px 10px; min-width: 220px; }
-      button { padding: 8px 12px; cursor: pointer; }
-      pre { background: #0b0f14; color: #d7e2ee; padding: 12px; overflow: auto; border-radius: 8px; }
-      code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
-      .muted { color: #5b6570; }
+      label { display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; }
+      input, select, textarea {
+        padding: 10px 12px;
+        min-width: 220px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 10px;
+        box-shadow: inset 0 0 12px rgba(55, 199, 255, 0.12);
+      }
+      textarea { min-height: 80px; resize: vertical; }
+      button {
+        padding: 10px 16px;
+        cursor: pointer;
+        border: none;
+        border-radius: 999px;
+        color: #ffffff;
+        background: var(--neon-purple);
+        box-shadow: 0 0 18px rgba(181, 75, 255, 0.45);
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+      button:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+      pre { background: #050810; color: #d7e2ee; padding: 12px; overflow: auto; border-radius: 12px; border: 1px solid var(--border); }
+      code { background: #0c1220; color: var(--neon-blue); padding: 2px 6px; border-radius: 6px; }
+      .muted { color: var(--muted); }
     </style>
   </head>
   <body>
     <h1>Pixelblot Recorder (SDK) Example</h1>
     <p class="muted">
-      This page records <code>pointermove</code>, and computes predictions when you click “Predict”.
+      The MAILA SDK lets you embed lightweight behavioral capture on any website, stream data to your backend,
+      and request model predictions on demand. Use this page to test ingestion, segmentation, and predictions
+      before integrating into your product.
     </p>
+    <br/>
+    <div class="muted" style="margin-top: 8px">
+      Button map:
+      <ul style="margin: 6px 0 0 18px">
+        <li>Start → <code>recorder.start()</code></li>
+        <li>Stop → <code>recorder.stop()</code></li>
+        <li>Predict → <code>recorder.predict()</code></li>
+        <li>New session → <code>recorder.newSession()</code></li>
+      </ul>
+    </div>
+    <br/>
 
     <div class="row">
       <label>
@@ -26,8 +85,8 @@
         <input id="backendUrl" value="https://pixelblot-maila-backend.onrender.com" />
       </label>
       <label>
-        User name:
-        <input id="userName" value="alice" />
+        User alias:
+        <input id="userAlias" value="N/A" />
       </label>
       <label>
         Model group:
@@ -36,6 +95,13 @@
           <option value="quest">quest (force quest models)</option>
           <option value="auto">auto</option>
         </select>
+      </label>
+    </div>
+
+    <div class="row" style="margin-top: 12px">
+      <label style="flex: 1">
+        Additional info:
+        <textarea id="userInfo">N/A</textarea>
       </label>
     </div>
 
@@ -56,6 +122,17 @@
 
       let recorder = null;
 
+      function getUserFields() {
+        return {
+          userAlias: $("userAlias").value || "N/A",
+          userInfo: $("userInfo").value || "N/A",
+        };
+      }
+
+      function getBackendBase() {
+        return $("backendUrl").value.replace(/\/+$/, "");
+      }
+
       function updateStatus() {
         if (!recorder) {
           $("status").textContent = "Recorder not initialized.";
@@ -67,11 +144,13 @@
       }
 
       function initRecorder() {
-        const base = $("backendUrl").value.replace(/\/+$/, "");
+        const base = getBackendBase();
+        const fields = getUserFields();
         recorder = PixelblotRecorder.createRecorder({
           endpoint: `${base}/exp_main`,
           predictEndpoint: `${base}/predict`,
-          userName: $("userName").value || "anonymous",
+          userAlias: fields.userAlias,
+          userInfo: fields.userInfo,
           modelGroup: $("modelGroup").value,
           segmentMs: 10_000,
           flushMs: 1_000,
@@ -81,7 +160,9 @@
 
       $("startBtn").addEventListener("click", () => {
         if (!recorder) initRecorder();
-        recorder.config.userName = $("userName").value || recorder.config.userName || "anonymous";
+        const fields = getUserFields();
+        recorder.config.userAlias = fields.userAlias;
+        recorder.config.userInfo = fields.userInfo;
         recorder.start();
         $("startBtn").disabled = true;
         $("stopBtn").disabled = false;
@@ -100,7 +181,7 @@
       $("predictBtn").addEventListener("click", async () => {
         try {
           $("out").textContent = "Loading...";
-          const res = await recorder.predict($("userName").value || "anonymous");
+          const res = await recorder.predict();
           $("out").textContent = JSON.stringify(res, null, 2);
         } catch (e) {
           $("out").textContent = String(e && e.message ? e.message : e);
@@ -111,9 +192,14 @@
 
       $("newSessionBtn").addEventListener("click", async () => {
         if (!recorder) return;
-        await recorder.newSession({ userName: $("userName").value || "anonymous" });
+        const fields = getUserFields();
+        await recorder.newSession({
+          userAlias: fields.userAlias,
+          userInfo: fields.userInfo,
+        });
         updateStatus();
       });
+
     </script>
   </body>
 </html>
