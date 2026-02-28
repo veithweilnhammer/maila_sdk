@@ -1,4 +1,12 @@
 (function (global) {
+  function normalizeModelGroup(value) {
+    const raw = String(value || "").toLowerCase();
+    if (raw === "draw" || raw === "touch_draw") return "touch_draw";
+    if (raw === "quest" || raw === "touch_quest" || raw === "auto") return "touch_quest";
+    if (raw === "cursor_baseline") return "cursor_baseline";
+    return "touch_quest";
+  }
+
   function randomDigits(length) {
     let out = "";
     for (let i = 0; i < length; i++) out += Math.floor(Math.random() * 10);
@@ -33,10 +41,8 @@
       userId: opts.userId || defaultUserId(),
       sessionId: opts.sessionId || defaultSessionId(),
       userName: opts.userName || "anonymous",
-      userAlias: typeof opts.userAlias === "string" ? opts.userAlias : "N/A",
-      userInfo: typeof opts.userInfo === "string" ? opts.userInfo : "N/A",
       segmentType: opts.segmentType || "web",
-      modelGroup: opts.modelGroup || "auto", // "auto" | "draw" | "quest"
+      modelGroup: normalizeModelGroup(opts.modelGroup), // "touch_draw" | "touch_quest" | "cursor_baseline"
       segmentMs: typeof opts.segmentMs === "number" ? opts.segmentMs : 10_000,
       flushMs: typeof opts.flushMs === "number" ? opts.flushMs : 1_000,
       sampleMs: typeof opts.sampleMs === "number" ? opts.sampleMs : 16,
@@ -46,9 +52,11 @@
     const segmentIdOffset =
       typeof opts.segmentIdOffset === "number"
         ? opts.segmentIdOffset
-        : config.modelGroup === "draw"
+        : config.modelGroup === "touch_draw"
           ? 500
-          : 0;
+          : config.modelGroup === "cursor_baseline"
+            ? 900
+            : 0;
 
     let running = false;
     let segmentTimer = null;
@@ -164,8 +172,6 @@
         timestamp: ts,
         x: e.clientX,
         y: e.clientY,
-        user_alias: config.userAlias,
-        user_info: config.userInfo,
         viewport: getViewport(),
       });
     }
@@ -180,8 +186,6 @@
         session_id: config.sessionId,
         user_id: config.userId,
         user_name: config.userName,
-        user_alias: config.userAlias,
-        user_info: config.userInfo,
         user_agent: navigator && navigator.userAgent ? navigator.userAgent : "unknown",
         platform: navigator && navigator.platform ? navigator.platform : "unknown",
         language: navigator && navigator.language ? navigator.language : "unknown",
@@ -234,6 +238,7 @@
         user_id: config.userId,
         session_id: config.sessionId,
         user_name: userNameOverride || config.userName || "anonymous",
+        model_group: config.modelGroup,
       };
 
       const res = await fetch(config.predictEndpoint, {
@@ -241,8 +246,17 @@
         headers: makeHeaders(),
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Predict failed: " + res.status);
-      const out = await res.json();
+      const rawText = await res.text();
+      let out = null;
+      try {
+        out = rawText ? JSON.parse(rawText) : {};
+      } catch (_) {
+        out = { status: "error", message: `Non-JSON response (HTTP ${res.status})`, raw: rawText };
+      }
+      if (!res.ok || (out && out.status === "error")) {
+        const message = out && out.message ? out.message : "Predict failed: " + res.status;
+        throw new Error(message);
+      }
 
       if (running) {
         startSegment();
@@ -271,8 +285,6 @@
         if (typeof p.userName === "string") config.userName = p.userName;
         if (typeof p.userId === "string") config.userId = p.userId;
         else if (rotateUserId) config.userId = defaultUserId();
-        if (typeof p.userAlias === "string") config.userAlias = p.userAlias;
-        if (typeof p.userInfo === "string") config.userInfo = p.userInfo;
 
         if (typeof p.sessionId === "string") config.sessionId = p.sessionId;
         else config.sessionId = defaultSessionId();
@@ -284,8 +296,6 @@
             session_id: config.sessionId,
             user_id: config.userId,
             user_name: config.userName,
-            user_alias: config.userAlias,
-            user_info: config.userInfo,
             user_agent: navigator && navigator.userAgent ? navigator.userAgent : "unknown",
             platform: navigator && navigator.platform ? navigator.platform : "unknown",
             language: navigator && navigator.language ? navigator.language : "unknown",

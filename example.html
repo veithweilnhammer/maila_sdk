@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pixelblot SDK Example</title>
+    <title>MAILA Sandbox</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap");
       :root {
@@ -11,10 +11,9 @@
         --panel: #0b0f1a;
         --text: #f5f7ff;
         --muted: #9aa5b8;
-        --neon-blue: #37c7ff;
-        --neon-purple: #b54bff;
+        --accent-a: #37c7ff;
+        --accent-b: #b54bff;
         --border: #182238;
-        --glow: 0 0 18px rgba(55, 199, 255, 0.35), 0 0 28px rgba(181, 75, 255, 0.25);
       }
       body {
         font-family: "Space Grotesk", "Segoe UI", sans-serif;
@@ -27,13 +26,17 @@
           var(--bg);
         color: var(--text);
       }
-      h1 {
-        letter-spacing: 0.5px;
-        text-shadow: 0 0 12px rgba(55, 199, 255, 0.5);
-      }
+      h1 { letter-spacing: 0.5px; text-shadow: 0 0 12px rgba(55, 199, 255, 0.5); }
+      h3 { margin-top: 20px; }
       .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      .card {
+        background: rgba(11, 15, 26, 0.82);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
       label { display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; }
-      input, select, textarea {
+      input, select {
         padding: 10px 12px;
         min-width: 220px;
         background: var(--panel);
@@ -42,42 +45,83 @@
         border-radius: 10px;
         box-shadow: inset 0 0 12px rgba(55, 199, 255, 0.12);
       }
-      textarea { min-height: 80px; resize: vertical; }
       button {
         padding: 10px 16px;
         cursor: pointer;
         border: none;
         border-radius: 999px;
         color: #ffffff;
-        background: var(--neon-purple);
+        background: var(--accent-b);
         box-shadow: 0 0 18px rgba(181, 75, 255, 0.45);
         font-weight: 600;
         letter-spacing: 0.3px;
       }
       button:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
-      pre { background: #050810; color: #d7e2ee; padding: 12px; overflow: auto; border-radius: 12px; border: 1px solid var(--border); }
-      code { background: #0c1220; color: var(--neon-blue); padding: 2px 6px; border-radius: 6px; }
+      pre {
+        background: #050810;
+        color: #d7e2ee;
+        padding: 12px;
+        overflow: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+      code {
+        background: #0c1220;
+        color: var(--accent-a);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
       .muted { color: var(--muted); }
+      .split { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+      @media (min-width: 900px) {
+        .split { grid-template-columns: 1.7fr 1fr; }
+      }
+      ul { margin: 6px 0 0 18px; }
+      li { margin: 4px 0; }
+      a {
+        color: var(--accent-a);
+        text-decoration: underline;
+      }
+      .subtle { font-size: 0.92rem; }
     </style>
   </head>
   <body>
-    <h1>Pixelblot Recorder (SDK) Example</h1>
+    <h1>MAILA Sandbox</h1>
     <p class="muted">
-      The MAILA SDK lets you embed lightweight behavioral capture on any website, stream data to your backend,
-      and request model predictions on demand. Use this page to test ingestion, segmentation, and predictions
-      before integrating into your product.
+      Human-computer interactions encode latent mental states. This sandbox lets you run MAILA end to end:
+      collect cursor traces, upload them, and request model predictions from the same interface.
     </p>
-    <br/>
-    <div class="muted" style="margin-top: 8px">
-      Button map:
-      <ul style="margin: 6px 0 0 18px">
-        <li>Start → <code>recorder.start()</code></li>
-        <li>Stop → <code>recorder.stop()</code></li>
-        <li>Predict → <code>recorder.predict()</code></li>
-        <li>New session → <code>recorder.newSession()</code></li>
-      </ul>
+
+    <div class="split">
+      <div class="card muted">
+        <div><strong>About MAILA</strong> (manuscript-aligned):</div>
+        <ul>
+          <li><code>MAILA</code> infers latent mental states from everyday cursor behavior.</li>
+          <li>This Sandbox is for testing ingestion and inference workflows described in the manuscript.</li>
+          <li>Outputs are model estimates for research/product experimentation, not a clinical diagnosis.</li>
+        </ul>
+        <div style="margin-top: 10px"><strong>Button map with concrete examples:</strong></div>
+        <ul>
+          <li><code>Start recording</code>: starts capture and uploads event batches while you move the cursor.</li>
+          <li><code>Stop</code>: stops capture and ends active segmentation.</li>
+          <li><code>Predict (flush + /predict)</code>: predicts from the currently recorded <code>user_id/session_id</code>.</li>
+          <li><code>New session</code>: keeps the user, rotates <code>session_id</code>, and starts a fresh trial window.</li>
+          <li><code>Predict from uploaded file</code>: runs inference directly from a local recording file via <code>/predict-upload</code>.</li>
+        </ul>
+      </div>
+      <div class="card muted">
+        <div><strong>Upload file requirements:</strong></div>
+        <ul>
+          <li>Accepted extensions: <code>.jsonl</code> (recommended), <code>.json</code>, <code>.txt</code>.</li>
+          <li>Content should be newline-delimited JSON events (JSON Lines).</li>
+          <li>Use the same event schema as recorder output (session + segment + pointer events).</li>
+          <li>Missing required structure will return an error in the response window below.</li>
+        </ul>
+        <div class="subtle" style="margin-top: 8px">
+          Example recording file: <a href="./example.jsonl" target="_blank" rel="noopener">example.jsonl</a>
+        </div>
+      </div>
     </div>
-    <br/>
 
     <div class="row">
       <label>
@@ -85,23 +129,16 @@
         <input id="backendUrl" value="https://pixelblot-maila-backend.onrender.com" />
       </label>
       <label>
-        User alias:
-        <input id="userAlias" value="N/A" />
+        User name:
+        <input id="userName" value="alice" />
       </label>
       <label>
         Model group:
         <select id="modelGroup">
-          <option value="draw" selected>draw (force draw models)</option>
-          <option value="quest">quest (force quest models)</option>
-          <option value="auto">auto</option>
+          <option value="touch_draw" selected>touch_draw</option>
+          <option value="touch_quest">touch_quest</option>
+          <option value="cursor_baseline">cursor_baseline</option>
         </select>
-      </label>
-    </div>
-
-    <div class="row" style="margin-top: 12px">
-      <label style="flex: 1">
-        Additional info:
-        <textarea id="userInfo">N/A</textarea>
       </label>
     </div>
 
@@ -111,9 +148,16 @@
       <button id="predictBtn" disabled>Predict (flush + /predict)</button>
       <button id="newSessionBtn" disabled>New session</button>
     </div>
+    <div class="row" style="margin-top: 12px">
+      <label>
+        Upload `.jsonl`:
+        <input id="uploadFile" type="file" accept=".jsonl,.json,.txt" />
+      </label>
+      <button id="predictFileBtn">Predict from uploaded file</button>
+    </div>
 
     <p class="muted" id="status" style="margin-top: 12px"></p>
-    <h3>Response</h3>
+    <h3>Response / Errors</h3>
     <pre id="out">{}</pre>
 
     <script src="./pixelblot-recorder.js"></script>
@@ -122,15 +166,36 @@
 
       let recorder = null;
 
-      function getUserFields() {
-        return {
-          userAlias: $("userAlias").value || "N/A",
-          userInfo: $("userInfo").value || "N/A",
-        };
+      function backendBaseUrl() {
+        return $("backendUrl").value.replace(/\/+$/, "");
       }
 
-      function getBackendBase() {
-        return $("backendUrl").value.replace(/\/+$/, "");
+      function setOutput(value) {
+        $("out").textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      }
+
+      async function parseApiResponse(res) {
+        const text = await res.text();
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { status: "error", message: `Non-JSON response (HTTP ${res.status})`, raw: text };
+        }
+      }
+
+      function renderError(context, err, payload) {
+        const message =
+          (payload && (payload.message || payload.detail)) ||
+          (err && err.message) ||
+          String(err || "Unknown error");
+        setOutput({
+          status: "error",
+          context,
+          message,
+          error_type: payload && payload.error_type ? payload.error_type : undefined,
+          details: payload && payload.details ? payload.details : undefined,
+        });
       }
 
       function updateStatus() {
@@ -140,17 +205,15 @@
         }
         $("status").textContent =
           `userId=${recorder.config.userId} sessionId=${recorder.config.sessionId} ` +
-          `(segmentMs=${recorder.config.segmentMs}, flushMs=${recorder.config.flushMs})`;
+          `modelGroup=${recorder.config.modelGroup}`;
       }
 
       function initRecorder() {
-        const base = getBackendBase();
-        const fields = getUserFields();
+        const base = backendBaseUrl();
         recorder = PixelblotRecorder.createRecorder({
           endpoint: `${base}/exp_main`,
           predictEndpoint: `${base}/predict`,
-          userAlias: fields.userAlias,
-          userInfo: fields.userInfo,
+          userName: $("userName").value || "anonymous",
           modelGroup: $("modelGroup").value,
           segmentMs: 10_000,
           flushMs: 1_000,
@@ -160,9 +223,7 @@
 
       $("startBtn").addEventListener("click", () => {
         if (!recorder) initRecorder();
-        const fields = getUserFields();
-        recorder.config.userAlias = fields.userAlias;
-        recorder.config.userInfo = fields.userInfo;
+        recorder.config.userName = $("userName").value || recorder.config.userName || "anonymous";
         recorder.start();
         $("startBtn").disabled = true;
         $("stopBtn").disabled = false;
@@ -180,11 +241,11 @@
 
       $("predictBtn").addEventListener("click", async () => {
         try {
-          $("out").textContent = "Loading...";
-          const res = await recorder.predict();
-          $("out").textContent = JSON.stringify(res, null, 2);
+          setOutput("Loading...");
+          const res = await recorder.predict($("userName").value || "anonymous");
+          setOutput(res);
         } catch (e) {
-          $("out").textContent = String(e && e.message ? e.message : e);
+          renderError("predict", e, null);
         } finally {
           updateStatus();
         }
@@ -192,14 +253,57 @@
 
       $("newSessionBtn").addEventListener("click", async () => {
         if (!recorder) return;
-        const fields = getUserFields();
-        await recorder.newSession({
-          userAlias: fields.userAlias,
-          userInfo: fields.userInfo,
-        });
+        await recorder.newSession({ userName: $("userName").value || "anonymous" });
         updateStatus();
       });
 
+      $("predictFileBtn").addEventListener("click", async () => {
+        const fileInput = $("uploadFile");
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          setOutput({
+            status: "error",
+            context: "predict-upload",
+            message: "No file selected. Choose a .jsonl/.json/.txt recording first.",
+          });
+          return;
+        }
+
+        const allowedExt = [".jsonl", ".json", ".txt"];
+        const lowerName = String(file.name || "").toLowerCase();
+        if (!allowedExt.some((ext) => lowerName.endsWith(ext))) {
+          setOutput({
+            status: "error",
+            context: "predict-upload",
+            message: `Unsupported file extension for '${file.name}'. Use .jsonl, .json, or .txt.`,
+          });
+          return;
+        }
+
+        const form = new FormData();
+        form.append("file", file);
+        form.append("user_name", $("userName").value || "anonymous");
+        form.append("model_group", $("modelGroup").value);
+
+        const base = backendBaseUrl();
+        let payload = null;
+        try {
+          setOutput("Loading...");
+          const res = await fetch(`${base}/predict-upload`, {
+            method: "POST",
+            body: form,
+          });
+          payload = await parseApiResponse(res);
+          if (!res.ok || payload.status === "error") {
+            const msg =
+              (payload && payload.message) || `Upload prediction failed (HTTP ${res.status})`;
+            throw new Error(msg);
+          }
+          setOutput(payload);
+        } catch (e) {
+          renderError("predict-upload", e, payload);
+        }
+      });
     </script>
   </body>
 </html>
