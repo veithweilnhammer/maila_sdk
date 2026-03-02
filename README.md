@@ -2,7 +2,7 @@
 
 **Authors:** Veith Weilnhammer, Jefferson Ortega, and David Whitney
 
-This repository accompanies the preprint at `https://arxiv.org/abs/2511.20179`.
+This repository accompanies the MAILA preprint: `https://arxiv.org/abs/2511.20179`.
 
 ## What You Can Do With This Repo
 
