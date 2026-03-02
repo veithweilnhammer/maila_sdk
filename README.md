@@ -60,7 +60,7 @@ python3 -m http.server 8000
 
 The demo page is intentionally "literal": each button corresponds to a single recorder call or backend API.
 
-## Embed On Your Own Site (Script Tag)
+## Embed On Your Own Site
 
 1) Host `pixelblot-recorder.js` somewhere reachable (or serve it from your own site).
 
