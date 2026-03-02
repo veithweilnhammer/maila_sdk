@@ -83,42 +83,93 @@
         text-decoration: underline;
       }
       .subtle { font-size: 0.92rem; }
+
+      /* --- spacing between vertically stacked sections (no HTML changes needed) --- */
+      .split { margin-bottom: 16px; }                 /* space after the two intro cards */
+      .row + .row { margin-top: 12px; }               /* space between consecutive rows */
+      .row { margin-top: 12px; }                      /* first row also gets breathing room */
+      #status { margin-top: 16px; }                   /* status separated from controls */
+      h3 { margin-top: 24px; }                        /* more space before response header */
+      /* optional: gentle spacing between top-level siblings */
+      body > * + * { margin-top: 12px; }
     </style>
   </head>
   <body>
     <h1>MAILA Sandbox</h1>
     <p class="muted">
       Human-computer interactions encode latent mental states. This sandbox lets you run MAILA end to end:
-      collect cursor traces, upload them, and request model predictions from the same interface.
+      collect human-computer interactions, upload them, and generate model predictions.
     </p>
 
     <div class="split">
       <div class="card muted">
-        <div><strong>About MAILA</strong> (manuscript-aligned):</div>
+        <div><strong>About MAILA</strong>:</div>
         <ul>
-          <li><code>MAILA</code> infers latent mental states from everyday cursor behavior.</li>
-          <li>This Sandbox is for testing ingestion and inference workflows described in the manuscript.</li>
+          <li>MAILA infers latent mental states from everyday human-computer interactions.</li>
+          <li>
+            This sandbox is for testing ingestion and inference workflows described in our
+            <a href="https://arxiv.org/abs/2511.20179" target="_blank" rel="noopener">preprint</a>.
+          </li>
           <li>Outputs are model estimates for research/product experimentation, not a clinical diagnosis.</li>
         </ul>
-        <div style="margin-top: 10px"><strong>Button map with concrete examples:</strong></div>
+
+        <br />
+
+        <div style="margin-top: 10px"><strong>Actions:</strong></div>
         <ul>
-          <li><code>Start recording</code>: starts capture and uploads event batches while you move the cursor.</li>
+          <li>
+            <code>Start recording</code>: starts capture and uploads event batches while you move the cursor.
+          </li>
           <li><code>Stop</code>: stops capture and ends active segmentation.</li>
-          <li><code>Predict (flush + /predict)</code>: predicts from the currently recorded <code>user_id/session_id</code>.</li>
-          <li><code>New session</code>: keeps the user, rotates <code>session_id</code>, and starts a fresh trial window.</li>
-          <li><code>Predict from uploaded file</code>: runs inference directly from a local recording file via <code>/predict-upload</code>.</li>
+          <li>
+            <code>Predict (flush + /predict)</code>: predicts from the currently recorded
+            <code>user_id/session_id</code>.
+          </li>
+          <li>
+            <code>New session</code>: keeps the user, rotates <code>session_id</code>, and starts a fresh
+            trial window.
+          </li>
+          <li>
+            <code>Predict from uploaded file</code>: runs inference directly from a local recording file via
+            <code>/predict-upload</code>.
+          </li>
         </ul>
       </div>
+
       <div class="card muted">
-        <div><strong>Upload file requirements:</strong></div>
+        <div><strong>Pixelblot recorder (what this page embeds):</strong></div>
         <ul>
-          <li>Accepted extensions: <code>.jsonl</code> (recommended), <code>.json</code>, <code>.txt</code>.</li>
-          <li>Content should be newline-delimited JSON events (JSON Lines).</li>
-          <li>Use the same event schema as recorder output (session + segment + pointer events).</li>
-          <li>Missing required structure will return an error in the response window below.</li>
+          <li>
+            This page includes <code>pixelblot-recorder.js</code> and creates a
+            <code>PixelblotRecorder</code> instance on <code>Start recording</code>.
+          </li>
+          <li>
+            While running, it samples <code>pointermove</code> (mouse/touch/stylus) and uploads event batches
+            to <code>/exp_main</code> every ~<code>flushMs</code> (default: 1s).
+          </li>
+          <li>
+            Events are grouped into fixed windows (default: <code>segmentMs = 10s</code>) via
+            <code>segment_start</code>/<code>segment_end</code>.
+          </li>
+          <li>
+            <code>Predict</code> flushes pending events, then calls <code>/predict</code> for the current
+            <code>user_id</code>/<code>session_id</code> and selected <code>model_group</code>.
+          </li>
         </ul>
+
+        <br />
+
+        <div style="margin-top: 10px"><strong>Upload file requirements:</strong></div>
+        <ul>
+          <li>Preferred format: <code>.jsonl</code> (JSON Lines, one JSON event per line).</li>
+          <li>Also accepted by <code>/predict-upload</code>: <code>.json</code>, <code>.txt</code>.</li>
+        </ul>
+
+        <br />
+
         <div class="subtle" style="margin-top: 8px">
-          Example recording file: <a href="./example.jsonl" target="_blank" rel="noopener">example.jsonl</a>
+          Example recording file:
+          <a href="./example.jsonl" target="_blank" rel="noopener">example.jsonl</a>
         </div>
       </div>
     </div>

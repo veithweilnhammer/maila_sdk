@@ -1,14 +1,22 @@
-# MAILA SDK recorder (collaborator embed)
+# Human–computer interactions predict mental health
+
+**Authors:** Veith Weilnhammer, Jefferson Ortega, and David Whitney
+
+This repository accompanies the preprint at `https://arxiv.org/abs/2511.20179`.
+
+-------------------------------------------------
+
+## MAILA SDK
 
 This recorder batches **10s segments** of pointer activity (mouse/touch/stylus via `pointermove`) and sends them to the existing backend endpoints:
 
 - `POST /exp_main` for ingest
 - `POST /predict` for predictions
-- `POST /predict-upload` for predicting directly from an uploaded `.jsonl` file
+- `POST /predict-upload` for predicting directly from an uploaded recording file (`.jsonl` recommended)
 
 ## Quick start (script tag)
 
-1) Host `sdk/pixelblot-recorder.js` somewhere reachable (or serve it from your own site).
+1) Host `pixelblot-recorder.js` somewhere reachable (or serve it from your own site).
 
 2) Embed:
 
@@ -36,7 +44,7 @@ This recorder batches **10s segments** of pointer activity (mouse/touch/stylus v
 
 ## Example page controls
 
-`sdk/example.html` maps each button directly to one user flow:
+`example.html` maps each button directly to one user flow:
 
 - `Start recording`
   - Calls `recorder.start()`
@@ -61,7 +69,7 @@ For `POST /predict-upload`, the uploaded file should be JSON Lines (one JSON obj
 - Accepted extensions: `.jsonl` (recommended), `.json`, `.txt`
 - Expected event structure: compatible with preprocessing (`session_start`, `segment_start`, `pointermove`, `segment_end`)
 - Coordinates should include `x`, `y`, and ideally `viewport`
-- Example file: `sdk/example.jsonl`
+- Example file: `example.jsonl`
 
 ## Notes
 
