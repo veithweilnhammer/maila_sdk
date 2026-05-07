@@ -20,14 +20,27 @@
         max-width: 980px;
         margin: 32px auto;
         padding: 0 20px 40px;
+        font-size: 15px;
+        line-height: 1.45;
         background:
           radial-gradient(1200px 700px at 10% 5%, rgba(55, 199, 255, 0.12), transparent 50%),
           radial-gradient(800px 600px at 90% 15%, rgba(181, 75, 255, 0.12), transparent 50%),
           var(--bg);
         color: var(--text);
       }
-      h1 { letter-spacing: 0.5px; text-shadow: 0 0 12px rgba(55, 199, 255, 0.5); }
-      h3 { margin-top: 20px; }
+      h1 {
+        letter-spacing: 0.5px;
+        text-shadow: 0 0 12px rgba(55, 199, 255, 0.5);
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+      }
+      h3 {
+        margin-top: 20px;
+        font-size: 1rem;
+      }
+      p {
+        margin: 0;
+      }
       .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
       .card {
         background: rgba(11, 15, 26, 0.82);
@@ -35,7 +48,29 @@
         border-radius: 12px;
         padding: 12px 14px;
       }
-      label { display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.35fr 0.85fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 8px;
+        font-size: 0.74rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent-a);
+      }
+      .lead {
+        font-size: 0.96rem;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      label { display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; }
       input, select {
         padding: 10px 12px;
         min-width: 220px;
@@ -72,9 +107,12 @@
         border-radius: 6px;
       }
       .muted { color: var(--muted); }
-      .split { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+      .tiny { font-size: 0.82rem; }
       @media (min-width: 900px) {
-        .split { grid-template-columns: 1.7fr 1fr; }
+        .hero { grid-template-columns: 1.35fr 0.85fr; }
+      }
+      @media (max-width: 899px) {
+        .hero { grid-template-columns: 1fr; }
       }
       ul { margin: 6px 0 0 18px; }
       li { margin: 4px 0; }
@@ -82,94 +120,36 @@
         color: var(--accent-a);
         text-decoration: underline;
       }
-      .subtle { font-size: 0.92rem; }
-
-      /* --- spacing between vertically stacked sections (no HTML changes needed) --- */
-      .split { margin-bottom: 16px; }                 /* space after the two intro cards */
-      .row + .row { margin-top: 12px; }               /* space between consecutive rows */
-      .row { margin-top: 12px; }                      /* first row also gets breathing room */
-      #status { margin-top: 16px; }                   /* status separated from controls */
-      h3 { margin-top: 24px; }                        /* more space before response header */
-      /* optional: gentle spacing between top-level siblings */
-      body > * + * { margin-top: 12px; }
+      .subtle { font-size: 0.84rem; }
     </style>
   </head>
   <body>
-    <h1>MAILA Sandbox</h1>
-    <p class="muted">
-      Human-computer interactions encode latent mental states. This sandbox lets you run MAILA end to end:
-      collect human-computer interactions, upload them, and generate model predictions.
-    </p>
-
-    <div class="split">
-      <div class="card muted">
-        <div><strong>About MAILA</strong>:</div>
-        <ul>
-          <li>MAILA infers latent mental states from everyday human-computer interactions.</li>
-          <li>
-            This sandbox is for testing ingestion and inference workflows described in our
-            <a href="https://arxiv.org/abs/2511.20179" target="_blank" rel="noopener">preprint</a>.
-          </li>
-          <li>Outputs are model estimates for research/product experimentation, not a clinical diagnosis.</li>
-        </ul>
-
-        <br />
-
-        <div style="margin-top: 10px"><strong>Actions:</strong></div>
-        <ul>
-          <li>
-            <code>Start recording</code>: starts capture and uploads event batches while you move the cursor.
-          </li>
-          <li><code>Stop</code>: stops capture and ends active segmentation.</li>
-          <li>
-            <code>Predict (flush + /predict)</code>: predicts from the currently recorded
-            <code>user_id/session_id</code>.
-          </li>
-          <li>
-            <code>New session</code>: keeps the user, rotates <code>session_id</code>, and starts a fresh
-            trial window.
-          </li>
-          <li>
-            <code>Predict from uploaded file</code>: runs inference directly from a local recording file via
-            <code>/predict-upload</code>.
-          </li>
-        </ul>
+    <div class="hero">
+      <div class="card">
+        <div class="eyebrow">MAILA</div>
+        <h1>MAILA Sandbox</h1>
+        <p class="muted lead">
+          MAILA infers latent mental states from everyday interaction patterns. This page shows a
+          minimal end-to-end flow: record interaction data, send it to the backend API, and request
+          predictions.
+        </p>
       </div>
-
       <div class="card muted">
-        <div><strong>Pixelblot recorder (what this page embeds):</strong></div>
+        <div><strong>How to</strong>:</div>
+        <div class="stack">
+          <p class="tiny">Set the backend URL. For local piloting, use <code>http://localhost:8000</code>.</p>
+          <p class="tiny"><code>Start recording</code> sends event batches to <code>POST /exp_main</code>.</p>
+          <p class="tiny"><code>Predict</code> flushes pending data and calls <code>POST /predict</code>.</p>
+          <p class="tiny"><code>Predict from uploaded file</code> sends a saved recording to <code>POST /predict-upload</code>.</p>
+        </div>
+        <div style="margin-top: 10px"><strong>Notes</strong>:</div>
         <ul>
-          <li>
-            This page includes <code>pixelblot-recorder.js</code> and creates a
-            <code>PixelblotRecorder</code> instance on <code>Start recording</code>.
-          </li>
-          <li>
-            While running, it samples <code>pointermove</code> (mouse/touch/stylus) and uploads event batches
-            to <code>/exp_main</code> every ~<code>flushMs</code> (default: 1s).
-          </li>
-          <li>
-            Events are grouped into fixed windows (default: <code>segmentMs = 10s</code>) via
-            <code>segment_start</code>/<code>segment_end</code>.
-          </li>
-          <li>
-            <code>Predict</code> flushes pending events, then calls <code>/predict</code> for the current
-            <code>user_id</code>/<code>session_id</code> and selected <code>model_group</code>.
-          </li>
+          <li>Short runs are fine for testing connectivity and JSON responses.</li>
+          <li>Use longer interaction windows for more stable predictions.</li>
+          <li>Accepted upload formats: <code>.jsonl</code>, <code>.json</code>, <code>.txt</code>.</li>
         </ul>
-
-        <br />
-
-        <div style="margin-top: 10px"><strong>Upload file requirements:</strong></div>
-        <ul>
-          <li>Preferred format: <code>.jsonl</code> (JSON Lines, one JSON event per line).</li>
-          <li>Also accepted by <code>/predict-upload</code>: <code>.json</code>, <code>.txt</code>.</li>
-        </ul>
-
-        <br />
-
         <div class="subtle" style="margin-top: 8px">
-          Example recording file:
-          <a href="./example.jsonl" target="_blank" rel="noopener">example.jsonl</a>
+          Example recording file: <a href="./example.jsonl" target="_blank" rel="noopener">example.jsonl</a>
         </div>
       </div>
     </div>
@@ -177,7 +157,7 @@
     <div class="row">
       <label>
         Backend base URL:
-        <input id="backendUrl" value="https://pixelblot-maila-backend.onrender.com" />
+        <input id="backendUrl" value="https://maila-backend.onrender.com" />
       </label>
       <label>
         User name:
@@ -186,9 +166,9 @@
       <label>
         Model group:
         <select id="modelGroup">
-          <option value="touch_draw" selected>touch_draw</option>
+          <option value="cursor_baseline" selected>cursor_baseline</option>
+          <option value="touch_draw">touch_draw</option>
           <option value="touch_quest">touch_quest</option>
-          <option value="cursor_baseline">cursor_baseline</option>
         </select>
       </label>
     </div>
@@ -211,7 +191,7 @@
     <h3>Response / Errors</h3>
     <pre id="out">{}</pre>
 
-    <script src="./pixelblot-recorder.js"></script>
+    <script src="./maila-recorder.js"></script>
     <script>
       const $ = (id) => document.getElementById(id);
 
@@ -261,7 +241,7 @@
 
       function initRecorder() {
         const base = backendBaseUrl();
-        recorder = PixelblotRecorder.createRecorder({
+        recorder = MailaRecorder.createRecorder({
           endpoint: `${base}/exp_main`,
           predictEndpoint: `${base}/predict`,
           userName: $("userName").value || "anonymous",

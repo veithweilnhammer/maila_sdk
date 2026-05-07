@@ -326,5 +326,5 @@
     };
   }
 
-  global.PixelblotRecorder = { createRecorder };
+  global.MailaRecorder = { createRecorder };
 })(typeof window !== "undefined" ? window : globalThis);
